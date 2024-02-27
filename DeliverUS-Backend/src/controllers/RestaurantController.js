@@ -22,19 +22,85 @@ const index = async function (req, res) {
 // TODO: Complete the following functions
 
 const create = async function (req, res) {
+  // 1. Get restaurant from request body
+  const newRestaurant = Restaurant.build(req.body)
 
+  // 2. Get user from request
+  // newRestaurant.userId = req.user.id // authenticated user
+  newRestaurant.userId = 1 // hardcoded user
+
+  // 3.Save restaurant
+  try {
+    const restaurant = await newRestaurant.save()
+    res.json(restaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
 }
 
-const show = async function (req, res) {
+// FR1: Restaurants listing: Customers will be able to query all restaurants.
+// To this end, you can use the Sequelize Model.findAll method.
+/*
+const index = async function (req, res){
+  try{
+    const restaurants = await Restaurant.findAll()
+    res.json(restaurants)
+  }
+  catch (err){
+    res.status(500).send(err)
+  }
+}
+*/
 
+const show = async function (req, res) {
+// FR2: Restaurants details and menu: Customers will be able to query restaurants details and the products offered by them.
+  try {
+    // get specific restaurant by id
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId, {
+      attributes: { exclude: ['userId'] },
+      include: [{
+        model: Product,
+        as: 'products',
+        include: { model: ProductCategory, as: 'productCategory' }
+      },
+      {
+        model: RestaurantCategory,
+        as: 'restaurantCategory'
+      }],
+      order: [[{ model: Product, as: 'products' }, 'order', 'ASC']]
+    })
+    // Return restaurant
+    res.json(restaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
 }
 
 const update = async function (req, res) {
-
+  const newRestaurant = Restaurant.build(req.body)
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    // NOTE --> You must pass the dataValues to the update method
+    const res = await restaurant.update(newRestaurant.dataValues)
+    // Return updated restaurant
+    const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
 }
 
 const destroy = async function (req, res) {
-
+  try {
+    const destroyedRestaurants = await Restaurant.destroy({
+      where: {
+        id: req.params.restaurantId
+      }
+    })
+    res.json(destroyedRestaurants)
+  } catch (err) {
+    res.status(500).send(err)
+  }
 }
 
 const RestaurantController = {
