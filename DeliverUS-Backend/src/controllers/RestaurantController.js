@@ -77,11 +77,9 @@ const show = async function (req, res) {
 }
 
 const update = async function (req, res) {
-  const newRestaurant = Restaurant.build(req.body)
   try {
-    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
-    // NOTE --> You must pass the dataValues to the update method
-    const res = await restaurant.update(newRestaurant.dataValues)
+    // Use the Restaurant.update(nesData, {where: {id: req.params.restaurantId}}) method to update the restaurant.
+    await Restaurant.update(req.body, { where: { id: req.params.restaurantId } })
     // Return updated restaurant
     const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
     res.json(updatedRestaurant)
